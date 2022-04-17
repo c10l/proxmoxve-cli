@@ -38,8 +38,6 @@ var rootCmd = &cobra.Command{
 It uses the API client library proxmoxve-client-go from github.com/c10l/proxmoxve-client-go
 
 Official API docs: https://pve.proxmox.com/pve-docs/api-viewer/`,
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -53,16 +51,15 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVarP(&ProxMoxURL, "url", "u", "", "(required) Root URL of the ProxMox VE server. e.g. https://proxmox.example.com:8006")
-	rootCmd.PersistentFlags().StringVar(&TokenID, "token-id", "", "(required) ProxMox API Token ID")
-	rootCmd.PersistentFlags().StringVar(&Secret, "secret", "", "(required) ProxMox API Secret")
-	rootCmd.PersistentFlags().BoolVarP(&TLSInsecure, "insecure", "k", false, "Allow untrusted connections to the API.")
-	rootCmd.MarkPersistentFlagRequired("url")
-	rootCmd.MarkPersistentFlagRequired("token-id")
-	rootCmd.MarkPersistentFlagRequired("secret")
+	cobra.OnInitialize(markRequiredFlags)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.proxmoxve-cli.yaml)")
+
+	rootCmd.PersistentFlags().StringP("url", "u", "", "(required) Root URL of the ProxMox VE server. e.g. https://proxmox.example.com:8006")
+	rootCmd.PersistentFlags().String("token-id", "", "(required) ProxMox API Token ID")
+	rootCmd.PersistentFlags().String("secret", "", "(required) ProxMox API Secret")
+	rootCmd.PersistentFlags().BoolVarP(&TLSInsecure, "insecure", "k", false, "Allow untrusted connections to the API.")
+	cobra.CheckErr(viper.BindPFlags(rootCmd.PersistentFlags()))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -86,5 +83,17 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func markRequiredFlags() {
+	if !viper.IsSet("url") {
+		rootCmd.MarkPersistentFlagRequired("url")
+	}
+	if !viper.IsSet("token-id") {
+		rootCmd.MarkPersistentFlagRequired("token-id")
+	}
+	if !viper.IsSet("secret") {
+		rootCmd.MarkPersistentFlagRequired("secret")
 	}
 }

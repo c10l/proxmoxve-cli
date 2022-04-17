@@ -23,6 +23,7 @@ import (
 
 	"github.com/c10l/proxmoxve-client-go/api2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // versionCmd represents the version command
@@ -33,10 +34,9 @@ var versionCmd = &cobra.Command{
 
 // versionGetCmd represents the versionGet command
 var versionGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "API version details, including some parts of the global datacenter config.",
+	Use: "get",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := api2.NewClient(ProxMoxURL, TokenID, Secret, TLSInsecure)
+		client := api2.NewClient(viper.GetString("url"), viper.GetString("token-id"), viper.GetString("secret"), viper.GetBool("insecure"))
 		data, err := client.GetVersion()
 		if err != nil {
 			fmt.Println(err.Error())
