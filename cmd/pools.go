@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -49,7 +50,37 @@ var poolsGetCmd = &cobra.Command{
 	},
 }
 
+// poolsPostCmd represents the poolsGet command
+var poolsPostCmd = &cobra.Command{
+	Use:   "post <pool-id> [comment]",
+	Short: "Create new pool.",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("argument required: <pool-id>")
+		}
+		if len(args) > 2 {
+			return fmt.Errorf("too many arguments: %s", args)
+		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		client := newClient()
+		poolID := args[0]
+		comment := ""
+		if len(args) > 1 {
+			comment = args[1]
+		}
+		err := client.PostPools(poolID, comment)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		fmt.Printf("created pool with ID: %s\n", poolID)
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(poolsCmd)
 	poolsCmd.AddCommand(poolsGetCmd)
+	poolsCmd.AddCommand(poolsPostCmd)
 }
